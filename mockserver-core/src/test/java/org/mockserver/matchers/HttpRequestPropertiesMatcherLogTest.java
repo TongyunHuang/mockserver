@@ -676,7 +676,7 @@ public class HttpRequestPropertiesMatcherLogTest {
             // Should be splited into 5 sections
             assertTrue(arr.length == 5);
 
-            // Static substring
+            // Deterministic substring
             assertThat(arr[0], is(
                 LOG_DATE_FORMAT.format(new Date(TimeService.currentTimeMillis())) + " - request:" + NEW_LINE +
                     NEW_LINE +
@@ -685,7 +685,7 @@ public class HttpRequestPropertiesMatcherLogTest {
                     "  }" + NEW_LINE +
                     NEW_LINE +
                     " didn't match "));
-            // assertThat(arr[1], is());
+            
             assertThat(arr[2], is(":" + NEW_LINE +
                     NEW_LINE +
                     "  method matched" + NEW_LINE +
@@ -713,7 +713,7 @@ public class HttpRequestPropertiesMatcherLogTest {
                     "  { }" + NEW_LINE +
                     NEW_LINE +
                     " didn't match "));
-            // assertThat(arr[3], is());
+            
             assertThat(arr[4], is(":" + NEW_LINE +
                     NEW_LINE +
                     "  method matched" + NEW_LINE +
@@ -736,7 +736,7 @@ public class HttpRequestPropertiesMatcherLogTest {
                     "  sslMatches matched" + NEW_LINE +
                     NEW_LINE));
 
-            // NonStatic (unordered hashMap or whatever DS)
+            // Nondeterministic (unordered hashMap or whatever DS)
             // The first data structure involved
             assertThat(arr[1], containsString("\"httpRequest\" : {" + NEW_LINE +"      \"keepAlive\" : true" + NEW_LINE + "    }"));
             assertThat(arr[1], containsString("\"id\" : \"" + UUIDService.getUUID() + "\""));
@@ -745,6 +745,7 @@ public class HttpRequestPropertiesMatcherLogTest {
                     "      \"unlimited\" : true" + NEW_LINE +
                     "    }"));
             assertThat(arr[1], containsString("\"timeToLive\" : {" + NEW_LINE + "      \"unlimited\" : true" + NEW_LINE +"    }"));
+            assertThat(arr[1].length(),is(238));
 
             // The second data structure involved
             assertThat(arr[3], containsString("\"httpRequest\" : {" + NEW_LINE +"      \"keepAlive\" : false" + NEW_LINE + "    }"));
@@ -754,6 +755,7 @@ public class HttpRequestPropertiesMatcherLogTest {
                     "      \"unlimited\" : true" + NEW_LINE +
                     "    }"));
             assertThat(arr[3], containsString("\"timeToLive\" : {" + NEW_LINE + "      \"unlimited\" : true" + NEW_LINE +"    }"));
+            assertThat(arr[3].length(),is(239));
 
             /**
             // The old test assertion
