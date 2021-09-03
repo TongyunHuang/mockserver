@@ -1,0 +1,11 @@
+nondexFilter=.*
+nondexMode=FULL
+nondexSeed=933178
+nondexStart=89
+nondexEnd=117
+nondexPrintstack=false
+nondexDir=/home/tongyun2/mockserver/mockserver-core/.nondex
+nondexJarDir=/home/tongyun2/mockserver/mockserver-core/.nondex
+nondexExecid=30Coe99Xc3buJ8Ne0NJcU6uYk+vbYvJsr2GITUR840=
+nondexLogging=CONFIG
+test=org.mockserver.matchers.HttpRequestPropertiesMatcherLogTest#doesNotMatchIncorrectKeepAliveWithExpectationAndWithoutFailFast

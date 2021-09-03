@@ -18,6 +18,7 @@ import java.util.Date;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockserver.character.Character.NEW_LINE;
@@ -115,12 +116,23 @@ public class HttpRequestPropertiesMatcherLogTest {
                 .withSecure(false)
         ));
 
+        // // test written by Tongyun
+        // String testStr = request().getBodyAsJsonOrXmlString();
+        // println(testStr);
+
         // then
+        // System.out.println(request()
+        //             .withQueryStringParameter("type", "logs"))
         HttpResponse response = httpStateHandler
             .retrieve(
                 request()
                     .withQueryStringParameter("type", "logs")
             );
+
+        
+        String responseAsString = response.getBodyAsString();
+
+
         assertThat(response.getBodyAsString(), is(
             LOG_DATE_FORMAT.format(new Date(TimeService.currentTimeMillis())) + " - request:" + NEW_LINE +
                 NEW_LINE +
@@ -253,11 +265,13 @@ public class HttpRequestPropertiesMatcherLogTest {
             ));
 
             // then
+            
             HttpResponse response = httpStateHandler
                 .retrieve(
                     request()
                         .withQueryStringParameter("type", "logs")
                 );
+            //transfer response.body to string
             assertThat(response.getBodyAsString(), is(
                 LOG_DATE_FORMAT.format(new Date(TimeService.currentTimeMillis())) + " - request:" + NEW_LINE +
                     NEW_LINE +
@@ -631,8 +645,11 @@ public class HttpRequestPropertiesMatcherLogTest {
         }
     }
 
+    
+
     @Test
     public void doesNotMatchIncorrectKeepAliveWithExpectationAndWithoutFailFast() {
+        // TODO: fix this test
         boolean originalMatchersFailFast = matchersFailFast();
         try {
             // given
@@ -646,7 +663,101 @@ public class HttpRequestPropertiesMatcherLogTest {
                     request()
                         .withQueryStringParameter("type", "logs")
                 );
-            assertThat(response.getBodyAsString(), is(
+            
+            // set value of response here
+            // Guess: the HttpRequest store info as a unsorted dictionary/ HashMap, which cause different order while testing
+
+            // Trying to fix the flasky test: by spliting the string and use contain instead of equal to avoid the unsorted
+
+            String responseStr = response.getBodyAsString();
+            // Split when encounter "expectation" or "because", use regex
+            String[] arr = responseStr.split("expectation|because");
+            
+            // Should be splited into 5 sections
+            assertTrue(arr.length == 5);
+
+            // Static substring
+            assertThat(arr[0], is(
+                LOG_DATE_FORMAT.format(new Date(TimeService.currentTimeMillis())) + " - request:" + NEW_LINE +
+                    NEW_LINE +
+                    "  {" + NEW_LINE +
+                    "    \"keepAlive\" : false" + NEW_LINE +
+                    "  }" + NEW_LINE +
+                    NEW_LINE +
+                    " didn't match "));
+            // assertThat(arr[1], is());
+            assertThat(arr[2], is(":" + NEW_LINE +
+                    NEW_LINE +
+                    "  method matched" + NEW_LINE +
+                    "  path matched" + NEW_LINE +
+                    "  body matched" + NEW_LINE +
+                    "  headers matched" + NEW_LINE +
+                    "  cookies matched" + NEW_LINE +
+                    "  pathParameters matched" + NEW_LINE +
+                    "  queryParameters matched" + NEW_LINE +
+                    "  keep-alive didn't match: " + NEW_LINE +
+                    "  " + NEW_LINE +
+                    "    boolean match failed expected:" + NEW_LINE +
+                    "  " + NEW_LINE +
+                    "      true" + NEW_LINE +
+                    "  " + NEW_LINE +
+                    "     found:" + NEW_LINE +
+                    "  " + NEW_LINE +
+                    "      false" + NEW_LINE +
+                    "  " + NEW_LINE +
+                    "  sslMatches matched" + NEW_LINE +
+                    NEW_LINE +
+                    "------------------------------------" + NEW_LINE +
+                    LOG_DATE_FORMAT.format(new Date(TimeService.currentTimeMillis())) + " - request:" + NEW_LINE +
+                    NEW_LINE +
+                    "  { }" + NEW_LINE +
+                    NEW_LINE +
+                    " didn't match "));
+            // assertThat(arr[3], is());
+            assertThat(arr[4], is(":" + NEW_LINE +
+                    NEW_LINE +
+                    "  method matched" + NEW_LINE +
+                    "  path matched" + NEW_LINE +
+                    "  body matched" + NEW_LINE +
+                    "  headers matched" + NEW_LINE +
+                    "  cookies matched" + NEW_LINE +
+                    "  pathParameters matched" + NEW_LINE +
+                    "  queryParameters matched" + NEW_LINE +
+                    "  keep-alive didn't match: " + NEW_LINE +
+                    "  " + NEW_LINE +
+                    "    boolean match failed expected:" + NEW_LINE +
+                    "  " + NEW_LINE +
+                    "      false" + NEW_LINE +
+                    "  " + NEW_LINE +
+                    "     found:" + NEW_LINE +
+                    "  " + NEW_LINE +
+                    "      null" + NEW_LINE +
+                    "  " + NEW_LINE +
+                    "  sslMatches matched" + NEW_LINE +
+                    NEW_LINE));
+
+            // NonStatic (unordered hashMap or whatever DS)
+            // The first data structure involved
+            assertThat(arr[1], containsString("\"httpRequest\" : {" + NEW_LINE +"      \"keepAlive\" : true" + NEW_LINE + "    }"));
+            assertThat(arr[1], containsString("\"id\" : \"" + UUIDService.getUUID() + "\""));
+            assertThat(arr[1], containsString("\"priority\" : 0"));
+            assertThat(arr[1], containsString("\"times\" : {" + NEW_LINE +
+                    "      \"unlimited\" : true" + NEW_LINE +
+                    "    }"));
+            assertThat(arr[1], containsString("\"timeToLive\" : {" + NEW_LINE + "      \"unlimited\" : true" + NEW_LINE +"    }"));
+
+            // The second data structure involved
+            assertThat(arr[3], containsString("\"httpRequest\" : {" + NEW_LINE +"      \"keepAlive\" : false" + NEW_LINE + "    }"));
+            assertThat(arr[3], containsString("\"id\" : \"" + UUIDService.getUUID() + "\""));
+            assertThat(arr[3], containsString("\"priority\" : 0"));
+            assertThat(arr[3], containsString("\"times\" : {" + NEW_LINE +
+                    "      \"unlimited\" : true" + NEW_LINE +
+                    "    }"));
+            assertThat(arr[3], containsString("\"timeToLive\" : {" + NEW_LINE + "      \"unlimited\" : true" + NEW_LINE +"    }"));
+
+            /**
+            // The old test assertion
+            assertThat(responseStr, is(
                 LOG_DATE_FORMAT.format(new Date(TimeService.currentTimeMillis())) + " - request:" + NEW_LINE +
                     NEW_LINE +
                     "  {" + NEW_LINE +
@@ -732,7 +843,7 @@ public class HttpRequestPropertiesMatcherLogTest {
                     "  " + NEW_LINE +
                     "  sslMatches matched" + NEW_LINE +
                     NEW_LINE
-            ));
+            )); */
         } finally {
             matchersFailFast(originalMatchersFailFast);
         }
